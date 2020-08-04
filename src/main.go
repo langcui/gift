@@ -14,28 +14,30 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func send(reps http.ResponseWriter, req *http.Request) {
-	if req.Method == "GET" {
-		fmt.Fprintf(reps, "use POST only.")
+func send(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.Header().Set("ALLOW", "POST")
+		http.Error(w, http.StatusText(405), 405)
 		return
 	}
 
-	data, _ := ioutil.ReadAll(req.Body)
-	req.Body.Close()
+	data, _ := ioutil.ReadAll(r.Body)
+	r.Body.Close()
 	var g gift
 	err := json.Unmarshal([]byte(data), &g)
-	fmt.Println(err)
-	fmt.Printf("post data:%s, gift.AuthorID: %d.\n", data, g.AuthorID)
-	fmt.Fprintf(reps, "in send, gift:AuthorID:%d, Worth:%d, Time:%d",
-		g.AuthorID, g.Worth, g.Time)
+	b, err := json.Marshal(g)
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+	}
+	fmt.Fprintf(w, "%s", b)
 }
 
-func top(reps http.ResponseWriter, req *http.Request) {
+func top(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("in top")
-	fmt.Fprintf(reps, "in top")
+	fmt.Fprintf(w, "in top")
 }
 
-func journal(reps http.ResponseWriter, req *http.Request) {
+func journal(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("in journal")
-	fmt.Fprintf(reps, "in journal")
+	fmt.Fprintf(w, "in journal")
 }
