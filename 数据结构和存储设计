@@ -1,1 +1,11 @@
 存储使用 redis 做缓存, mongodb 做持久化存储
+1. 缓存数据结构
+主播收礼排行榜因为需要实时展示,因此存储在缓存里查询更快.
+排行榜数据可以用zset, zset有很好的排序接口, 用收到的礼物总价值做score排序.
+ZADD  key  socre1  author1    // 设置或更新主播1的score值
+ZINCRBY key increment member  // 有序集合中对指定成员分数加上增量 increment
+ZREVRANGE  key  0 10   WITHSORES  // 返回有序集合中指定区间内的成员,通过索引,分数从高到低. 示例是取分数前10名.
+
+问题1: 如果一个成员不存在,是否可以直接调用 ZINCBY, 如果可以的话,每次送礼的时候就不需要先判断该主播数据是否已经存在了.
+答: 可以. 因此不需要调用 zadd key score1 author1 了, 直接调用 zincrby 就可以.
+
