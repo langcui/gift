@@ -7,7 +7,7 @@
  
 
 要求：
-1. 使用golang原生HTTP框架； 
+1. 使用golang原生HTTP框架；
 2. 送礼接口要求使用HTTP POST方法，请求数据使用Json格式；
 3. 排行榜查询接口和收礼流水查询接口要求使用HTTP GET方法，响应数据使用Json格式；
 4. 要求使用redis做缓存，使用mongo做数据存储；
