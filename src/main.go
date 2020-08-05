@@ -7,12 +7,13 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func main() {
 	http.HandleFunc("/send", send)
 	http.HandleFunc("/top", top)
-	http.HandleFunc("/journal", journal)
+	http.HandleFunc("/gift_log", giftLog)
 	http.HandleFunc("/get_worth", getWorth)
 	http.ListenAndServe(":8080", nil)
 }
@@ -26,18 +27,20 @@ func send(w http.ResponseWriter, r *http.Request) {
 
 	data, _ := ioutil.ReadAll(r.Body)
 	r.Body.Close()
-	var g gift
+	var g Gift
 	err := json.Unmarshal([]byte(data), &g)
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
+
+	g.Time = uint(time.Second)
 	err = SendGift(&g)
 	if err != nil {
 		fmt.Fprint(w, err)
 		return
 	}
-	fmt.Fprintf(w, "ok")
+	fmt.Fprintf(w, "success")
 }
 
 func top(w http.ResponseWriter, r *http.Request) {
@@ -64,9 +67,30 @@ func top(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", b)
 }
 
-func journal(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("in journal")
-	fmt.Fprintf(w, "in journal")
+func giftLog(w http.ResponseWriter, r *http.Request) {
+	authorID := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(authorID)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	g, err := GetGiftLog(id)
+	if err != nil {
+		log.Println(g, err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(g)
+	if err != nil {
+		log.Println(err, g)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, "%s", b)
 }
 
 func getWorth(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +102,7 @@ func getWorth(w http.ResponseWriter, r *http.Request) {
 	}
 	worth, err := GetAuthorWorth(id)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}

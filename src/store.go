@@ -2,7 +2,7 @@ package main
 
 // 送礼物请求数据,省略了送礼人的id
 // 同时也是mongodb里存储的送礼流水数据结构
-type gift struct {
+type Gift struct {
 	AuthorID uint
 	Worth    uint
 	Time     uint

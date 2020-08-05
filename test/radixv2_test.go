@@ -19,7 +19,7 @@ func _TestRadixv2(t *testing.T) {
 
 
 const RedisAuthorTotalGiftWorthKey = "author_gift_worth"
-// GetTopN get num of top gift worth
+// GetTopN get num of top Gift worth
 func TestGetTopN(t *testing.T) {
         conn, err := redis.Dial("tcp", "localhost:6379")
         if err != nil {

@@ -4,7 +4,9 @@ import (
 	"log"
 	"strconv"
 
+	"./db"
 	"github.com/mediocregopher/radix.v2/pool"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var rdb *pool.Pool
@@ -20,9 +22,14 @@ func init() {
 // RedisAuthorTotalGiftWorthKey key fot top
 const RedisAuthorTotalGiftWorthKey = "author_gift_worth"
 
-// SendGift send a gift to author
-func SendGift(g *gift) error {
+// SendGift send a Gift to author
+func SendGift(g *Gift) error {
 	err := UpdateAuthorGiftWorthRedis(g)
+	if err != nil {
+		return err
+	}
+
+	err = AddGiftLogMongo(g)
 	if err != nil {
 		return err
 	}
@@ -30,8 +37,8 @@ func SendGift(g *gift) error {
 	return nil
 }
 
-// UpdateAuthorGiftWorthRedis incr author's gift worth
-func UpdateAuthorGiftWorthRedis(g *gift) error {
+// UpdateAuthorGiftWorthRedis incr author's Gift worth
+func UpdateAuthorGiftWorthRedis(g *Gift) error {
 	conn, err := rdb.Get()
 	if err != nil {
 		return err
@@ -61,7 +68,7 @@ func GetAuthorWorth(authorID int) (int, error) {
 	return worth, nil
 }
 
-// GetTopN get num of top gift worth
+// GetTopN get num of top Gift worth
 func GetTopN(num int) ([]Anchorinfo, error) {
 	conn, err := rdb.Get()
 	if err != nil {
@@ -84,4 +91,43 @@ func GetTopN(num int) ([]Anchorinfo, error) {
 	}
 
 	return arrAnchor, nil
+}
+
+// MongodbGiftDB db gift
+const MongodbGiftDB = "GiftDB"
+
+// MongodbJournalCollection GiftDB.JournalCollection
+const MongodbJournalCollection = "JournalCollection"
+
+// MongodbMaxPageNum max items num each page
+const MongodbMaxPageNum = 10
+
+// GetGiftLog get author's Gift log
+func GetGiftLog(authorID int) ([]Gift, error) {
+	session := db.CloneSession()
+	defer session.Close()
+
+	c := session.DB(MongodbGiftDB).C(MongodbJournalCollection)
+	var gifts []Gift
+	f := bson.M{"authorid": authorID}
+	// err := c.Find(f).Limit(MongodbMaxPageNum).All(&gifts).sort(bson.M{"time": 1})
+	err := c.Find(f).Sort("-time").Limit(MongodbMaxPageNum).All(&gifts)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return gifts, nil
+}
+
+// AddGiftLogMongo add gift log to mongodb
+func AddGiftLogMongo(g *Gift) error {
+	session := db.CloneSession()
+	defer session.Close()
+
+	err := session.DB(MongodbGiftDB).C(MongodbJournalCollection).Insert(g)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
