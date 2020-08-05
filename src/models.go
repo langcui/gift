@@ -24,13 +24,11 @@ const RedisAuthorTotalGiftWorthKey = "author_gift_worth"
 
 // SendGift send a Gift to author
 func SendGift(g *Gift) error {
-	err := UpdateAuthorGiftWorthRedis(g)
-	if err != nil {
+	if err := UpdateAuthorGiftWorthRedis(g); err != nil {
 		return err
 	}
 
-	err = AddGiftLogMongo(g)
-	if err != nil {
+	if err := AddGiftLogMongo(g); err != nil {
 		return err
 	}
 
@@ -45,8 +43,7 @@ func UpdateAuthorGiftWorthRedis(g *Gift) error {
 	}
 	defer rdb.Put(conn)
 
-	err = conn.Cmd("ZINCRBY", RedisAuthorTotalGiftWorthKey, g.Worth, g.AuthorID).Err
-	if err != nil {
+	if err = conn.Cmd("ZINCRBY", RedisAuthorTotalGiftWorthKey, g.Worth, g.AuthorID).Err; err != nil {
 		return err
 	}
 
@@ -111,8 +108,7 @@ func GetGiftLog(authorID int) ([]Gift, error) {
 	var gifts []Gift
 	f := bson.M{"authorid": authorID}
 	// err := c.Find(f).Limit(MongodbMaxPageNum).All(&gifts).sort(bson.M{"time": 1})
-	err := c.Find(f).Sort("-time").Limit(MongodbMaxPageNum).All(&gifts)
-	if err != nil {
+	if err := c.Find(f).Sort("-time").Limit(MongodbMaxPageNum).All(&gifts); err != nil {
 		log.Println(err)
 		return nil, err
 	}
@@ -124,8 +120,7 @@ func AddGiftLogMongo(g *Gift) error {
 	session := db.CloneSession()
 	defer session.Close()
 
-	err := session.DB(MongodbGiftDB).C(MongodbJournalCollection).Insert(g)
-	if err != nil {
+	if err := session.DB(MongodbGiftDB).C(MongodbJournalCollection).Insert(g); err != nil {
 		return err
 	}
 

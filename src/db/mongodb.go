@@ -1,3 +1,5 @@
+// Package db init a global mgo session
+// use CloneSession() to start your mgo operators
 package db
 
 import (
@@ -6,6 +8,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+// GlobalMgoSession global mgo session
 var GlobalMgoSession *mgo.Session
 
 func init() {
@@ -18,6 +21,7 @@ func init() {
 	GlobalMgoSession.SetPoolLimit(300)
 }
 
+// CloneSession return a clone of global mgo session
 func CloneSession() *mgo.Session {
 	return GlobalMgoSession.Clone()
 }

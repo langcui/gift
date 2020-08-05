@@ -27,20 +27,19 @@ func TestMongodb(t *testing.T) {
     defer session.Close()
 
     c := session.DB("test1").C("people")
-    err := c.Insert(&User{
+    if err := c.Insert(&User{
             Id_ : bson.NewObjectId(),
             Name: "Jimmy Kuu",
             Age: 33,
             JoinedAt: time.Now(),
-            Interests: []string{"Develop", "Movie"}})
+            Interests: []string{"Develop", "Movie"}});
 
     if err != nil {
         panic(err)
     }
 
     var users []User
-    err = c.Find(nil).Limit(5).All(&users)
-    if err != nil {
+    if err = c.Find(nil).Limit(5).All(&users); err != nil {
         panic(err)
     }
     fmt.Println(users)

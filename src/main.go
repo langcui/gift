@@ -28,15 +28,13 @@ func send(w http.ResponseWriter, r *http.Request) {
 	data, _ := ioutil.ReadAll(r.Body)
 	r.Body.Close()
 	var g Gift
-	err := json.Unmarshal([]byte(data), &g)
-	if err != nil {
+	if err := json.Unmarshal([]byte(data), &g); err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
 
-	g.Time = uint(time.Second)
-	err = SendGift(&g)
-	if err != nil {
+	g.Time = uint(time.Now().Second())
+	if err := SendGift(&g); err != nil {
 		fmt.Fprint(w, err)
 		return
 	}
