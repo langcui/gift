@@ -67,7 +67,8 @@ func top(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%s", b)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
 }
 
 // 查询主播的收礼流水记录，按时间从近到远排序,从mongodb里获取
@@ -95,7 +96,8 @@ func journal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%s", b)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
 }
 
 // 查询主播的礼物总价值, 从redis里获取
@@ -122,5 +124,7 @@ func worth(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, "%s", b)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
 }
