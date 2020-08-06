@@ -1,23 +1,12 @@
-package main
+package models
 
 import (
 	"log"
 	"strconv"
 
-	"./db"
-	"github.com/mediocregopher/radix.v2/pool"
+	"../db"
 	"gopkg.in/mgo.v2/bson"
 )
-
-var rdb *pool.Pool
-
-func init() {
-	var err error
-	rdb, err = pool.New("tcp", "localhost:6379", 10)
-	if err != nil {
-		log.Println(err)
-	}
-}
 
 // RedisAuthorTotalGiftWorthKey key fot top
 const RedisAuthorTotalGiftWorthKey = "author_gift_worth"
@@ -37,11 +26,11 @@ func SendGift(g *Gift) error {
 
 // UpdateAuthorGiftWorthRedis incr author's Gift worth
 func UpdateAuthorGiftWorthRedis(g *Gift) error {
-	conn, err := rdb.Get()
+	conn, err := db.RedisPool().Get()
 	if err != nil {
 		return err
 	}
-	defer rdb.Put(conn)
+	defer db.RedisPool().Put(conn)
 
 	if err = conn.Cmd("ZINCRBY", RedisAuthorTotalGiftWorthKey, g.Worth, g.AuthorID).Err; err != nil {
 		return err
@@ -52,11 +41,11 @@ func UpdateAuthorGiftWorthRedis(g *Gift) error {
 
 // GetAuthorWorth from redis
 func GetAuthorWorth(authorID int) (int, error) {
-	conn, err := rdb.Get()
+	conn, err := db.RedisPool().Get()
 	if err != nil {
 		return 0, err
 	}
-	defer rdb.Put(conn)
+	defer db.RedisPool().Put(conn)
 	worth, err := conn.Cmd("ZSCORE", RedisAuthorTotalGiftWorthKey, authorID).Int()
 	if err != nil {
 		log.Println(err)
@@ -67,13 +56,13 @@ func GetAuthorWorth(authorID int) (int, error) {
 
 // GetTopN get num of top Gift worth
 func GetTopN(num int) ([]Anchorinfo, error) {
-	conn, err := rdb.Get()
+	conn, err := db.RedisPool().Get()
 	if err != nil {
 		return nil, err
 	}
-	defer rdb.Put(conn)
+	defer db.RedisPool().Put(conn)
 
-	data := conn.Cmd("ZREVRANGE", RedisAuthorTotalGiftWorthKey, 0, num, "WITHSCORES")
+	data := conn.Cmd("ZREVRANGE", RedisAuthorTotalGiftWorthKey, 0, num-1, "WITHSCORES")
 	l, _ := data.List()
 	var arr [2]string
 	var arrAnchor []Anchorinfo
@@ -101,7 +90,7 @@ const MongodbMaxPageNum = 10
 
 // GetGiftLog get author's Gift log
 func GetGiftLog(authorID int) ([]Gift, error) {
-	session := db.CloneSession()
+	session := db.MongoSession()
 	defer session.Close()
 
 	c := session.DB(MongodbGiftDB).C(MongodbJournalCollection)
@@ -117,7 +106,7 @@ func GetGiftLog(authorID int) ([]Gift, error) {
 
 // AddGiftLogMongo add gift log to mongodb
 func AddGiftLogMongo(g *Gift) error {
-	session := db.CloneSession()
+	session := db.MongoSession()
 	defer session.Close()
 
 	if err := session.DB(MongodbGiftDB).C(MongodbJournalCollection).Insert(g); err != nil {

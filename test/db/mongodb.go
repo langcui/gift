@@ -22,6 +22,6 @@ func init() {
     GlobalMgoSession.SetPoolLimit(300)
 }
 
-func CloneSession() *mgo.Session {
+func MongoSession() *mgo.Session {
     return GlobalMgoSession.Clone()
 }

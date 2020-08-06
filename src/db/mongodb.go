@@ -1,5 +1,5 @@
 // Package db init a global mgo session
-// use CloneSession() to start your mgo operators
+// use MongoSession() to start your mgo operators
 package db
 
 import (
@@ -24,4 +24,9 @@ func init() {
 // CloneSession return a clone of global mgo session
 func CloneSession() *mgo.Session {
 	return GlobalMgoSession.Clone()
+}
+
+// MongoSession return a clone of global mgo session
+func MongoSession() *mgo.Session {
+	return CloneSession()
 }

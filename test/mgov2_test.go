@@ -23,7 +23,7 @@ type User struct {
 }
 
 func TestMongodb(t *testing.T) {
-    session := mongodb.CloneSession()
+    session := mongodb.MongoSession()
     defer session.Close()
 
     c := session.DB("test1").C("people")
