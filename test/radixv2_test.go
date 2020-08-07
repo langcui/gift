@@ -18,7 +18,7 @@ func _TestRadixv2(t *testing.T) {
 }
 
 
-const RedisAuthorTotalGiftWorthKey = "author_gift_worth"
+const RedisAnchorTotalGiftWorthKey = "anchor_gift_worth"
 // GetTopN get num of top Gift worth
 func TestGetTopN(t *testing.T) {
         conn, err := redis.Dial("tcp", "localhost:6379")
@@ -29,7 +29,7 @@ func TestGetTopN(t *testing.T) {
         
         num := 10
 
-        resp := conn.Cmd("ZREVRANGE", RedisAuthorTotalGiftWorthKey, 0, num, "WITHSCORES")
+        resp := conn.Cmd("ZREVRANGE", RedisAnchorTotalGiftWorthKey, 0, num, "WITHSCORES")
         log.Println(resp)
         l, _ := resp.List()
         for i, elemStr := range l {

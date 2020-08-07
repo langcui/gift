@@ -74,8 +74,8 @@ func top(w http.ResponseWriter, r *http.Request) {
 // 查询主播的收礼流水记录，按时间从近到远排序,从mongodb里获取
 // GET请求,参数id表示需要查询的主播id
 func journal(w http.ResponseWriter, r *http.Request) {
-	authorID := r.URL.Query().Get("id")
-	id, err := strconv.Atoi(authorID)
+	anchorID := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(anchorID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -103,20 +103,20 @@ func journal(w http.ResponseWriter, r *http.Request) {
 // 查询主播的礼物总价值, 从redis里获取
 // GET请求,参数id表示需要查询的主播id
 func worth(w http.ResponseWriter, r *http.Request) {
-	authorID := r.URL.Query().Get("id")
-	id, err := strconv.Atoi(authorID)
+	anchorID := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(anchorID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	worth, err := models.GetAuthorWorth(id)
+	worth, err := models.GetAnchorWorth(id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 	var a models.Anchorinfo
-	a.AuthorID = uint(id)
+	a.AnchorID = uint(id)
 	a.TotalWorth = uint(worth)
 	b, err := json.Marshal(a)
 	if err != nil {

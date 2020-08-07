@@ -8,45 +8,45 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// RedisAuthorTotalGiftWorthKey key fot top
-const RedisAuthorTotalGiftWorthKey = "author_gift_worth"
+// RedisAnchorTotalGiftWorthKey key fot top
+const RedisAnchorTotalGiftWorthKey = "anchor_gift_worth"
 
-// SendGift send a Gift to author
+// SendGift send a Gift to anchor
 func SendGift(g *Gift) error {
-	if err := UpdateAuthorGiftWorthRedis(g); err != nil {
+	if err := UpdateAnchorGiftWorthRedis(g); err != nil {
 		return err
 	}
 
-	if err := AddGiftLogMongo(g); err != nil {
+	if err := AddGiftLog(g); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// UpdateAuthorGiftWorthRedis incr author's Gift worth
-func UpdateAuthorGiftWorthRedis(g *Gift) error {
+// UpdateAnchorGiftWorthRedis incr anchor's Gift worth
+func UpdateAnchorGiftWorthRedis(g *Gift) error {
 	conn, err := db.RedisPool().Get()
 	if err != nil {
 		return err
 	}
 	defer db.RedisPool().Put(conn)
 
-	if err = conn.Cmd("ZINCRBY", RedisAuthorTotalGiftWorthKey, g.Worth, g.AuthorID).Err; err != nil {
+	if err = conn.Cmd("ZINCRBY", RedisAnchorTotalGiftWorthKey, g.Worth, g.AnchorID).Err; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// GetAuthorWorth from redis
-func GetAuthorWorth(authorID int) (int, error) {
+// GetAnchorWorth from redis
+func GetAnchorWorth(anchorID int) (int, error) {
 	conn, err := db.RedisPool().Get()
 	if err != nil {
 		return 0, err
 	}
 	defer db.RedisPool().Put(conn)
-	worth, err := conn.Cmd("ZSCORE", RedisAuthorTotalGiftWorthKey, authorID).Int()
+	worth, err := conn.Cmd("ZSCORE", RedisAnchorTotalGiftWorthKey, anchorID).Int()
 	if err != nil {
 		log.Println(err)
 		return 0, err
@@ -62,16 +62,16 @@ func GetTopN(num int) ([]Anchorinfo, error) {
 	}
 	defer db.RedisPool().Put(conn)
 
-	data := conn.Cmd("ZREVRANGE", RedisAuthorTotalGiftWorthKey, 0, num-1, "WITHSCORES")
+	data := conn.Cmd("ZREVRANGE", RedisAnchorTotalGiftWorthKey, 0, num-1, "WITHSCORES")
 	l, _ := data.List()
 	var arr [2]string
 	var arrAnchor []Anchorinfo
 	for i, elemStr := range l {
 		arr[i%2] = elemStr
 		if i%2 == 1 {
-			authorID, _ := strconv.Atoi(arr[0])
+			anchorID, _ := strconv.Atoi(arr[0])
 			worth, _ := strconv.Atoi(arr[1])
-			au := Anchorinfo{uint(authorID), uint(worth)}
+			au := Anchorinfo{uint(anchorID), uint(worth)}
 			arrAnchor = append(arrAnchor, au)
 		}
 	}
@@ -88,14 +88,14 @@ const MongodbJournalCollection = "JournalCollection"
 // MongodbMaxPageNum max items num each page
 const MongodbMaxPageNum = 10
 
-// GetGiftLog get author's Gift log
-func GetGiftLog(authorID int) ([]Gift, error) {
+// GetGiftLog get anchor's Gift log
+func GetGiftLog(anchorID int) ([]Gift, error) {
 	session := db.MongoSession()
 	defer session.Close()
 
 	c := session.DB(MongodbGiftDB).C(MongodbJournalCollection)
 	var gifts []Gift
-	f := bson.M{"authorid": authorID}
+	f := bson.M{"anchorid": anchorID}
 	// err := c.Find(f).Limit(MongodbMaxPageNum).All(&gifts).sort(bson.M{"time": 1})
 	if err := c.Find(f).Sort("-time").Limit(MongodbMaxPageNum).All(&gifts); err != nil {
 		log.Println(err)
@@ -104,8 +104,8 @@ func GetGiftLog(authorID int) ([]Gift, error) {
 	return gifts, nil
 }
 
-// AddGiftLogMongo add gift log to mongodb
-func AddGiftLogMongo(g *Gift) error {
+// AddGiftLog add gift log to mongodb
+func AddGiftLog(g *Gift) error {
 	session := db.MongoSession()
 	defer session.Close()
 
