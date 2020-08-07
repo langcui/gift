@@ -32,15 +32,18 @@ func send(w http.ResponseWriter, r *http.Request) {
 	r.Body.Close()
 	var g models.Gift
 	if err := json.Unmarshal([]byte(data), &g); err != nil {
-		fmt.Fprintf(w, "%s", err)
+		log.Println(err, data)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	g.Time = uint(time.Now().Unix())
 	if err := models.SendGift(&g); err != nil {
-		fmt.Fprint(w, err)
+		log.Println(err, g)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
 	fmt.Fprintf(w, "success")
 }
 
@@ -55,14 +58,14 @@ func top(w http.ResponseWriter, r *http.Request) {
 
 	topN, err := models.GetTopN(num)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, num)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	b, err := json.Marshal(topN)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, topN)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -77,14 +80,14 @@ func journal(w http.ResponseWriter, r *http.Request) {
 	anchorID := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(anchorID)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, anchorID)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	g, err := models.GetGiftLog(id)
 	if err != nil {
-		log.Println(g, err)
+		log.Println(err, id)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -106,12 +109,13 @@ func worth(w http.ResponseWriter, r *http.Request) {
 	anchorID := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(anchorID)
 	if err != nil {
+		log.Println(err, anchorID)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 	worth, err := models.GetAnchorWorth(id)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, id)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -120,7 +124,7 @@ func worth(w http.ResponseWriter, r *http.Request) {
 	a.TotalWorth = uint(worth)
 	b, err := json.Marshal(a)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, a)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

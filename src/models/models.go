@@ -13,7 +13,7 @@ const RedisAnchorTotalGiftWorthKey = "anchor_gift_worth"
 
 // SendGift send a Gift to anchor
 func SendGift(g *Gift) error {
-	if err := UpdateAnchorGiftWorthRedis(g); err != nil {
+	if err := UpdateAnchorGiftWorth(g); err != nil {
 		return err
 	}
 
@@ -24,8 +24,8 @@ func SendGift(g *Gift) error {
 	return nil
 }
 
-// UpdateAnchorGiftWorthRedis incr anchor's Gift worth
-func UpdateAnchorGiftWorthRedis(g *Gift) error {
+// UpdateAnchorGiftWorth incr anchor's Gift worth to redis
+func UpdateAnchorGiftWorth(g *Gift) error {
 	conn, err := db.RedisPool().Get()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func GetAnchorWorth(anchorID int) (int, error) {
 	return worth, nil
 }
 
-// GetTopN get num of top Gift worth
+// GetTopN get num of top Gift worth from redis
 func GetTopN(num int) ([]Anchorinfo, error) {
 	conn, err := db.RedisPool().Get()
 	if err != nil {
@@ -88,7 +88,7 @@ const MongodbJournalCollection = "JournalCollection"
 // MongodbMaxPageNum max items num each page
 const MongodbMaxPageNum = 10
 
-// GetGiftLog get anchor's Gift log
+// GetGiftLog get anchor's Gift log from mongodb
 func GetGiftLog(anchorID int) ([]Gift, error) {
 	session := db.MongoSession()
 	defer session.Close()
