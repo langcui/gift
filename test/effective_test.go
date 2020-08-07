@@ -102,7 +102,16 @@ func TestChan(t *testing.T) {
     time.Sleep(time.Second * 2)
 }
 
+func F() (r int) {
+    defer func() {
+        r++
+    }()
+    return 1
+}
 
+func TestClosure(t *testing.T) {
+    fmt.Println(F())
+}
 
 
 
