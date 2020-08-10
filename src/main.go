@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+	models.InitDB()
 	http.HandleFunc("/gift/send", send)       // 给主播送礼,同时写入mongodb的流水和redis的收礼排行榜里
 	http.HandleFunc("/gift/top", top)         // 主播收礼排行榜, 根据主播收礼价值数从大到小排序,从redis里获取
 	http.HandleFunc("/gift/journal", journal) // 查询主播的收礼流水记录，按时间从近到远排序,从mongodb里获取

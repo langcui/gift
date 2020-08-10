@@ -52,12 +52,12 @@ func (c *DBConfig) GetRedisPort() (port int) {
 
 // GetMongoIP return mongodb's ip
 func (c *DBConfig) GetMongoIP() (ip string) {
-	ip = viper.GetString("mongodb.ip")
+	ip = viper.GetString("mongo.ip")
 	return
 }
 
 // GetMongoPort return mongodb's port
 func (c *DBConfig) GetMongoPort() (port int) {
-	port = viper.GetInt("mongodb.port")
+	port = viper.GetInt("mongo.port")
 	return
 }

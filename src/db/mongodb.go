@@ -3,17 +3,26 @@
 package db
 
 import (
+	"fmt"
+	"log"
+	"strconv"
 	"time"
 
+	"../utils"
 	"gopkg.in/mgo.v2"
 )
 
 // GlobalMgoSession global mgo session
 var GlobalMgoSession *mgo.Session
 
-func init() {
-	globalMgoSession, err := mgo.DialWithTimeout("", 10*time.Second)
+// InitMongo : server ip and port from config file
+func InitMongo() {
+	var c utils.DBConfig
+	url := c.GetMongoIP() + ":" + strconv.Itoa(c.GetMongoPort())
+	fmt.Println(url)
+	globalMgoSession, err := mgo.DialWithTimeout(url, 10*time.Second)
 	if err != nil {
+		log.Println(err, url)
 		panic(err)
 	}
 	GlobalMgoSession = globalMgoSession

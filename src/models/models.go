@@ -8,6 +8,12 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// InitDB init redis and mongo
+func InitDB() {
+	db.InitRedis()
+	db.InitMongo()
+}
+
 // RedisAnchorTotalGiftWorthKey key fot top
 const RedisAnchorTotalGiftWorthKey = "anchor_gift_worth"
 
