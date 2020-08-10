@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"./models"
+	"./utils"
 )
 
 func main() {
@@ -17,6 +18,8 @@ func main() {
 	http.HandleFunc("/gift/top", top)         // 主播收礼排行榜, 根据主播收礼价值数从大到小排序,从redis里获取
 	http.HandleFunc("/gift/journal", journal) // 查询主播的收礼流水记录，按时间从近到远排序,从mongodb里获取
 	http.HandleFunc("/gift/worth", worth)     // 查询主播的礼物总价值,从redis里获取
+	http.HandleFunc("/gift/config", config)   // 获取配置文件, 目前只有db的配置文件
+
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -125,6 +128,24 @@ func worth(w http.ResponseWriter, r *http.Request) {
 	b, err := json.Marshal(a)
 	if err != nil {
 		log.Println(err, a)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
+}
+
+func config(w http.ResponseWriter, r *http.Request) {
+	var c utils.DBConfig
+	c.RedisIP = c.GetRedisIP()
+	c.RedisPort = c.GetRedisPort()
+	c.MongoIP = c.GetMongoIP()
+	c.MongoPort = c.GetMongoPort()
+
+	b, err := json.Marshal(c)
+	if err != nil {
+		log.Println(err, c)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
