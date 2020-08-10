@@ -9,18 +9,33 @@ import (
 func init() {
 	viper.SetConfigName("db")
 	viper.SetConfigType("toml")
-	viper.AddConfigPath("../conf/")
+	viper.AddConfigPath("./conf")
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal("read config failed:", err)
 	}
 }
 
-// DBConfig for calling redisip...
+// DBConfig for viper.Unmarshal
 type DBConfig struct {
-	RedisIP   string
-	RedisPort int
-	MongoIP   string
-	MongoPort int
+	Redis RedisConfig
+	Mongo MongoConfig
+}
+
+// RedisConfig redis's ip and port
+type RedisConfig struct {
+	IP   string
+	Port int
+}
+
+// MongoConfig mongodb's ip and port
+type MongoConfig struct {
+	IP   string
+	Port int
+}
+
+// GetDBConfig Unmarshal to DBConfig
+func (c *DBConfig) GetDBConfig() {
+	viper.Unmarshal(c)
 }
 
 // GetRedisIP return redis's ip

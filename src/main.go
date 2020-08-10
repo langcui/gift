@@ -138,10 +138,7 @@ func worth(w http.ResponseWriter, r *http.Request) {
 
 func config(w http.ResponseWriter, r *http.Request) {
 	var c utils.DBConfig
-	c.RedisIP = c.GetRedisIP()
-	c.RedisPort = c.GetRedisPort()
-	c.MongoIP = c.GetMongoIP()
-	c.MongoPort = c.GetMongoPort()
+	c.GetDBConfig()
 
 	b, err := json.Marshal(c)
 	if err != nil {
