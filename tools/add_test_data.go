@@ -24,6 +24,7 @@ func main() {
 	fail := 0
 	success := 0
 	i := 0
+	begin := time.Now().Unix()
 	for ; i < n; i++ {
 		if SendGift() {
 			success++
@@ -32,7 +33,8 @@ func main() {
 		}
 	}
 
-	fmt.Printf("total send[%d], success[%d], fail[%d].\n", i, success, fail)
+	fmt.Printf("total send[%d], success[%d], fail[%d], cost[%d].\n",
+		i, success, fail, time.Now().Unix()-begin)
 }
 
 // SendGift send gift to anthor
