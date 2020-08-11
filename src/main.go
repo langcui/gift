@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -22,6 +23,12 @@ func main() {
 	http.HandleFunc("/gift/config", config)   // 获取配置文件, 目前只有db的配置文件
 
 	http.ListenAndServe(":8080", nil)
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("main stop", string(debug.Stack()), r)
+		}
+	}()
 }
 
 // 给主播送礼,同时写入mongodb的流水和redis的收礼排行榜里
@@ -48,7 +55,21 @@ func send(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "success")
+	resp := models.Response{Code: 0, Message: "success"}
+	RespJSON(w, resp)
+}
+
+// RespJSON return json to client
+func RespJSON(w http.ResponseWriter, r models.Response) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		log.Println(err, r)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
 }
 
 // 主播收礼排行榜, 根据主播收礼价值数从大到小排序,从redis里获取
@@ -67,15 +88,8 @@ func top(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := json.Marshal(topN)
-	if err != nil {
-		log.Println(err, topN)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+	resp := models.Response{Code: 0, Message: "success", Data: topN}
+	RespJSON(w, resp)
 }
 
 // 查询主播的收礼流水记录，按时间从近到远排序,从mongodb里获取
@@ -96,15 +110,8 @@ func journal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := json.Marshal(g)
-	if err != nil {
-		log.Println(err, g)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+	resp := models.Response{Code: 0, Message: "success", Data: g}
+	RespJSON(w, resp)
 }
 
 // 查询主播的礼物总价值, 从redis里获取
@@ -126,28 +133,15 @@ func worth(w http.ResponseWriter, r *http.Request) {
 	var a models.Anchorinfo
 	a.AnchorID = uint(id)
 	a.TotalWorth = uint(worth)
-	b, err := json.Marshal(a)
-	if err != nil {
-		log.Println(err, a)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+	resp := models.Response{Code: 0, Message: "success", Data: a}
+	RespJSON(w, resp)
 }
 
 func config(w http.ResponseWriter, r *http.Request) {
 	var c utils.DBConfig
 	c.GetDBConfig()
 
-	b, err := json.Marshal(c)
-	if err != nil {
-		log.Println(err, c)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
+	resp := models.Response{Code: 0, Message: "success", Data: c}
+	RespJSON(w, resp)
 }
