@@ -10,6 +10,9 @@ func init() {
 	viper.SetConfigName("db")
 	viper.SetConfigType("toml")
 	viper.AddConfigPath("./conf")
+	viper.AddConfigPath("../conf")
+	viper.AddConfigPath("../src/conf")
+
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal("read config failed:", err)
 	}
