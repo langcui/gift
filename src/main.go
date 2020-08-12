@@ -2,11 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -23,12 +21,6 @@ func main() {
 	http.HandleFunc("/gift/config", config)   // 获取配置文件, 目前只有db的配置文件
 
 	http.ListenAndServe(":8080", nil)
-
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("main stop", string(debug.Stack()), r)
-		}
-	}()
 }
 
 // 给主播送礼,同时写入mongodb的流水和redis的收礼排行榜里
@@ -55,7 +47,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := models.Response{Code: 0, Message: "success"}
+	resp := models.Response{Code: 0, Message: "success", Data: nil}
 	RespJSON(w, resp)
 }
 
