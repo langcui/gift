@@ -111,4 +111,6 @@ Showing top 10 nodes out of 18
          0     0%   100%   512.08kB  5.25%  net/http.(*Server).ListenAndServe
          0     0%   100%   512.08kB  5.25%  net/http.(*Server).Serve
 ```
-         
+![写数据时的 cpu 占比图](https://github.com/langcui/gift/blob/master/image/profile_add_test_data_cpu.png)
+
+![写数据时的 mem 占比图](https://github.com/langcui/gift/blob/master/image/profile_add_test_data_mem.png)
