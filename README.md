@@ -114,3 +114,6 @@ Showing top 10 nodes out of 18
 ![写数据时的 cpu 占比图](https://github.com/langcui/gift/blob/master/image/profile_add_test_data_cpu.png)
 
 ![写数据时的 mem 占比图](https://github.com/langcui/gift/blob/master/image/profile_add_test_data_mem.png)
+
+
+因为添加测试数据的时候,伪造了一个随机用户id, 系统调用 rand 占比较大, 这个地方可以优化成在最外层设置随机种子.
