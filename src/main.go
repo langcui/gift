@@ -4,21 +4,25 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
 
 	"./models"
 	"./utils"
+
+	_ "net/http/pprof"
 )
 
 func main() {
 	models.InitDB()
-	http.HandleFunc("/gift/send", send)       // 给主播送礼,同时写入mongodb的流水和redis的收礼排行榜里
-	http.HandleFunc("/gift/top", top)         // 主播收礼排行榜, 根据主播收礼价值数从大到小排序,从redis里获取
-	http.HandleFunc("/gift/journal", journal) // 查询主播的收礼流水记录，按时间从近到远排序,从mongodb里获取
-	http.HandleFunc("/gift/worth", worth)     // 查询主播的礼物总价值,从redis里获取
-	http.HandleFunc("/gift/config", config)   // 获取配置文件, 目前只有db的配置文件
+	http.HandleFunc("/gift/send", send)                 // 给主播送礼,同时写入mongodb的流水和redis的收礼排行榜里
+	http.HandleFunc("/gift/top", top)                   // 主播收礼排行榜, 根据主播收礼价值数从大到小排序,从redis里获取
+	http.HandleFunc("/gift/journal", journal)           // 查询主播的收礼流水记录，按时间从近到远排序,从mongodb里获取
+	http.HandleFunc("/gift/worth", worth)               // 查询主播的礼物总价值,从redis里获取
+	http.HandleFunc("/gift/config", config)             // 获取配置文件, 目前只有db的配置文件
+	http.HandleFunc("/gift/add_test_data", addTestData) // 添加测试数据, 用于压测
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -135,5 +139,34 @@ func config(w http.ResponseWriter, r *http.Request) {
 	c.GetDBConfig()
 
 	resp := models.Response{Code: 0, Message: "success", Data: c}
+	RespJSON(w, resp)
+}
+
+// addTestData 添加一个随机测试数据, 用于压测等场景
+func addTestData(w http.ResponseWriter, r *http.Request) {
+
+	// RandInt generate a random num between min and max
+	fRandInt := func(min, max int) int {
+		if min >= max || min == 0 || max == 0 {
+			return max
+		}
+
+		rand.Seed(time.Now().UnixNano())
+		return rand.Intn(max-min) + min
+	}
+
+	var g models.Gift
+	g.AudienceID = uint(fRandInt(1000, 2000))
+	g.AnchorID = uint(fRandInt(1, 100))
+	g.Worth = uint(fRandInt(1, 10))
+	g.Time = uint(time.Now().Unix())
+
+	if err := models.SendGift(&g); err != nil {
+		log.Println(err, g)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	resp := models.Response{Code: 0, Message: "success", Data: nil}
 	RespJSON(w, resp)
 }
