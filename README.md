@@ -57,3 +57,58 @@ request:
 请求总数（并发数*请求数 -c * -n）: 1000000 总请求时间: 256.001 秒 successNum: 1000000 failureNum: 0  
 *************************  结果 end   ****************************  
 ```
+
+2. 运行测试代码,同时观察性能
+```
+./go-stress-testing-linux -c 1000 -n 1000 -u http://localhost:8080/gift/add_test_data
+写操作:添加测试数据
+
+cpu 性能:
+cuiyc@hw-sg-mildom-docker1:~/projects$ go tool pprof http://localhost:8080/debug/pprof/profile?seconds=60
+Fetching profile over HTTP from http://localhost:8080/debug/pprof/profile?seconds=60
+Saved profile in /home1/cuiyc/pprof/pprof.gift.samples.cpu.001.pb.gz
+File: gift
+Type: cpu
+Time: Aug 12, 2020 at 7:34pm (CST)
+Duration: 1mins, Total samples = 1.09mins (109.10%)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) top10
+Showing nodes accounting for 36620ms, 55.84% of 65580ms total
+Dropped 640 nodes (cum <= 327.90ms)
+Showing top 10 nodes out of 226
+      flat  flat%   sum%        cum   cum%
+   10820ms 16.50% 16.50%    11380ms 17.35%  syscall.Syscall
+    6930ms 10.57% 27.07%     6930ms 10.57%  math/rand.seedrand (inline)
+    5330ms  8.13% 35.19%     5880ms  8.97%  runtime.step
+    3180ms  4.85% 40.04%     3180ms  4.85%  runtime.futex
+    2560ms  3.90% 43.95%     2560ms  3.90%  runtime.epollwait
+    2320ms  3.54% 47.48%     8310ms 12.67%  runtime.pcvalue
+    1760ms  2.68% 50.17%     2030ms  3.10%  syscall.Syscall6
+    1450ms  2.21% 52.38%     1450ms  2.21%  runtime.usleep
+    1370ms  2.09% 54.47%     8310ms 12.67%  math/rand.(*rngSource).Seed
+     900ms  1.37% 55.84%      900ms  1.37%  runtime.memmove
+     
+内存性能:
+cuiyc@hw-sg-mildom-docker1:~$ go tool pprof http://localhost:8080/debug/pprof/heap
+Fetching profile over HTTP from http://localhost:8080/debug/pprof/heap
+Saved profile in /home1/cuiyc/pprof/pprof.gift.alloc_objects.alloc_space.inuse_objects.inuse_space.001.pb.gz
+File: gift
+Type: inuse_space
+Time: Aug 12, 2020 at 7:39pm (CST)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) top
+Showing nodes accounting for 9752.91kB, 100% of 9752.91kB total
+Showing top 10 nodes out of 18
+      flat  flat%   sum%        cum   cum%
+ 3598.02kB 36.89% 36.89%  3598.02kB 36.89%  bufio.NewReaderSize (inline)
+ 2570.01kB 26.35% 63.24%  2570.01kB 26.35%  bufio.NewWriterSize (inline)
+ 2048.75kB 21.01% 84.25%  2048.75kB 21.01%  runtime.malg
+  512.08kB  5.25% 89.50%   512.08kB  5.25%  net/http.(*Server).newConn (inline)
+  512.03kB  5.25% 94.75%   512.03kB  5.25%  context.WithCancel
+  512.02kB  5.25%   100%  7192.08kB 73.74%  net/http.(*conn).serve
+         0     0%   100%  3598.02kB 36.89%  bufio.NewReader (inline)
+         0     0%   100%   512.08kB  5.25%  main.main
+         0     0%   100%   512.08kB  5.25%  net/http.(*Server).ListenAndServe
+         0     0%   100%   512.08kB  5.25%  net/http.(*Server).Serve
+```
+         
